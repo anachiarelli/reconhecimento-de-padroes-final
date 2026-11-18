@@ -1,8 +1,8 @@
 
-import argparse
 import csv
 import random
 import re
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -11,8 +11,11 @@ import numpy as np
 
 
 # ============================================================
-# CONFIGURAÇÕES DO CENÁRIO
+# CONFIGURAÇÕES
 # ============================================================
+
+BASE_DIR = Path("output/object_clustering")
+OUTPUT_DIR = Path("results/object_clustering/snapshots")
 
 NUM_ROBOTS = 2
 NUM_OBJECTS = 5
@@ -25,22 +28,48 @@ WORLD_SIZE = 112
 ROBOT_COLOR = "tab:blue"
 OBJECT_COLOR = "tab:red"
 
+NUM_SNAPSHOTS = 50
+SEED = 42
+
+
+# ============================================================
+# LOCALIZAÇÃO DA EXECUÇÃO
+# ============================================================
+
+def find_latest_execution():
+
+    executions = [
+        p for p in BASE_DIR.iterdir()
+        if p.is_dir()
+    ]
+
+    if not executions:
+        raise FileNotFoundError(
+            f"Nenhuma execução encontrada em {BASE_DIR}"
+        )
+
+    def execution_date(path):
+        try:
+            return datetime.strptime(
+                path.name,
+                "%d-%m-%Y %H-%M-%S"
+            )
+        except ValueError:
+            return datetime.fromtimestamp(
+                path.stat().st_mtime
+            )
+
+    return max(executions, key=execution_date)
+
 
 # ============================================================
 # IDENTIFICAÇÃO DOS ARQUIVOS
 # ============================================================
 
 def parse_filename(filename):
-    """
-    Identifica o indivíduo e a execução pelo nome.
-
-    Exemplos esperados:
-        001_genotype_run2.csv
-        001_genotype_2.csv
-        001_run2.csv
-    """
 
     stem = Path(filename).stem
+
     parts = stem.split("_")
 
     if len(parts) < 2:
@@ -51,8 +80,11 @@ def parse_filename(filename):
     except ValueError:
         return None
 
-    # O último número do nome representa a execução.
-    match = re.search(r"(?:run)?(\d+)$", stem, re.IGNORECASE)
+    match = re.search(
+        r"(?:run)?(\d+)$",
+        stem,
+        re.IGNORECASE
+    )
 
     if not match:
         return None
@@ -63,7 +95,6 @@ def parse_filename(filename):
 
 
 def find_matching_files(generation_dir):
-    """Encontra pares de arquivos de robôs e objetos."""
 
     robots_dir = generation_dir / "positions" / "robots"
     objects_dir = generation_dir / "positions" / "objects"
@@ -72,9 +103,14 @@ def find_matching_files(generation_dir):
         return []
 
     def build_map(directory):
+
         result = {}
 
-        for path in directory.glob("*.csv"):
+        for path in directory.iterdir():
+
+            if not path.is_file() or path.suffix.lower() != ".csv":
+                continue
+
             key = parse_filename(path.name)
 
             if key is not None:
@@ -100,14 +136,15 @@ def find_matching_files(generation_dir):
 # ============================================================
 
 def read_final_row(csv_path, expected_values):
-    """Lê somente a última linha numérica do CSV."""
 
     last_row = None
 
     with csv_path.open("r", newline="") as file:
+
         reader = csv.reader(file)
 
         for row in reader:
+
             values = [
                 value.strip()
                 for value in row
@@ -118,14 +155,18 @@ def read_final_row(csv_path, expected_values):
                 continue
 
             try:
-                numeric_values = [float(v) for v in values]
+                numeric_values = [
+                    float(value) for value in values
+                ]
             except ValueError:
                 continue
 
             last_row = numeric_values
 
     if last_row is None:
-        raise ValueError(f"Arquivo vazio: {csv_path.name}")
+        raise ValueError(
+            f"Arquivo vazio: {csv_path.name}"
+        )
 
     if len(last_row) != expected_values:
         raise ValueError(
@@ -144,7 +185,6 @@ def read_final_row(csv_path, expected_values):
 
 
 def read_final_robots(csv_path):
-    """Lê posições x, y e ângulo dos robôs."""
 
     data = read_final_row(
         csv_path,
@@ -157,7 +197,6 @@ def read_final_robots(csv_path):
 
 
 def read_final_objects(csv_path):
-    """Lê posições x e y dos objetos."""
 
     data = read_final_row(
         csv_path,
@@ -168,87 +207,53 @@ def read_final_objects(csv_path):
 
 
 # ============================================================
-# VISUALIZAÇÃO
+# GERAÇÃO DA IMAGEM
 # ============================================================
 
 def save_snapshot(
     robot_positions,
     object_positions,
     output_path,
-    generation,
-    individual_id,
-    run,
 ):
-    """Gera imagem com posições finais de robôs e objetos."""
 
     fig, ax = plt.subplots(figsize=(8, 8))
+
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
     ax.set_xlim(0, WORLD_SIZE)
     ax.set_ylim(0, WORLD_SIZE)
     ax.set_aspect("equal")
 
-    ax.set_title(
-        f"Object Clustering | Generation {generation}\n"
-        f"Individual={individual_id} | Run={run}",
-        fontsize=11,
-    )
-
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
+    ax.axis("off")
 
     # Robôs
-    for i, (x, y) in enumerate(robot_positions):
+    for x, y in robot_positions:
 
-        circle = Circle(
-            (x, y),
-            radius=DIAMETER_ROBOT / 2,
-            facecolor=ROBOT_COLOR,
-            edgecolor="black",
-            linewidth=0.8,
-            alpha=0.95,
-        )
-
-        ax.add_patch(circle)
-
-        ax.text(
-            x,
-            y,
-            f"R{i + 1}",
-            ha="center",
-            va="center",
-            fontsize=7,
-            color="white",
-            fontweight="bold",
+        ax.add_patch(
+            Circle(
+                (x, y),
+                radius=DIAMETER_ROBOT / 2,
+                facecolor=ROBOT_COLOR,
+                edgecolor="black",
+                linewidth=0.8,
+                alpha=0.95,
+            )
         )
 
     # Objetos
-    for i, (x, y) in enumerate(object_positions):
+    for x, y in object_positions:
 
-        circle = Circle(
-            (x, y),
-            radius=DIAMETER_OBJECT / 2,
-            facecolor=OBJECT_COLOR,
-            edgecolor="black",
-            linewidth=0.8,
-            alpha=0.9,
+        ax.add_patch(
+            Circle(
+                (x, y),
+                radius=DIAMETER_OBJECT / 2,
+                facecolor=OBJECT_COLOR,
+                edgecolor="black",
+                linewidth=0.8,
+                alpha=0.9,
+            )
         )
-
-        ax.add_patch(circle)
-
-        ax.text(
-            x,
-            y,
-            str(i + 1),
-            ha="center",
-            va="center",
-            fontsize=8,
-            color="white",
-            fontweight="bold",
-        )
-
-    ax.grid(alpha=0.2)
-
-    fig.tight_layout()
 
     output_path.parent.mkdir(
         parents=True,
@@ -259,6 +264,8 @@ def save_snapshot(
         output_path,
         dpi=160,
         bbox_inches="tight",
+        pad_inches=0,
+        facecolor="white",
     )
 
     plt.close(fig)
@@ -268,16 +275,15 @@ def save_snapshot(
 # SELEÇÃO DAS GERAÇÕES
 # ============================================================
 
-def select_generations(generation_dirs, num_snapshots):
-    """Seleciona gerações distribuídas uniformemente."""
+def select_generations(generation_dirs):
 
-    if len(generation_dirs) <= num_snapshots:
+    if len(generation_dirs) <= NUM_SNAPSHOTS:
         return generation_dirs
 
     indices = np.linspace(
         0,
         len(generation_dirs) - 1,
-        num_snapshots,
+        NUM_SNAPSHOTS,
     )
 
     indices = sorted(set(
@@ -296,50 +302,18 @@ def select_generations(generation_dirs, num_snapshots):
 
 def main():
 
-    parser = argparse.ArgumentParser(
-        description="Gera snapshots aleatórios de object clustering."
-    )
+    rng = random.Random(SEED)
 
-    parser.add_argument(
-        "--input",
-        required=True,
-        help="Pasta object_clustering/{data}.",
-    )
-
-    parser.add_argument(
-        "--num-snapshots",
-        type=int,
-        default=50,
-    )
-
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-    )
-
-    parser.add_argument(
-        "--output",
-        default="results/object_clustering/snapshots",
-    )
-
-    args = parser.parse_args()
-
-    rng = random.Random(args.seed)
-
-    input_root = Path(args.input)
-    output_root = Path(args.output)
-
-    if not input_root.is_dir():
+    if not BASE_DIR.is_dir():
         raise FileNotFoundError(
-            f"Pasta não encontrada: {input_root}"
+            f"Pasta não encontrada: {BASE_DIR}"
         )
 
-    # Localiza automaticamente as gerações.
+    input_root = find_latest_execution()
+
     generation_dirs = sorted(
         [
-            path
-            for path in input_root.iterdir()
+            path for path in input_root.iterdir()
             if path.is_dir() and path.name.isdigit()
         ],
         key=lambda path: int(path.name),
@@ -347,25 +321,26 @@ def main():
 
     if not generation_dirs:
         raise FileNotFoundError(
-            "Nenhuma pasta de geração encontrada."
+            f"Nenhuma geração encontrada em {input_root}"
         )
 
     selected_generations = select_generations(
-        generation_dirs,
-        args.num_snapshots,
+        generation_dirs
     )
 
+    print(f"Execução: {input_root}")
     print(f"Gerações encontradas: {len(generation_dirs)}")
     print(f"Gerações selecionadas: {len(selected_generations)}")
-    print(f"Semente aleatória: {args.seed}\n")
 
-    manifest = []
+    generated = 0
 
     for generation_dir in selected_generations:
 
         generation = generation_dir.name
 
-        candidates = find_matching_files(generation_dir)
+        candidates = find_matching_files(
+            generation_dir
+        )
 
         if not candidates:
             print(
@@ -374,7 +349,7 @@ def main():
             )
             continue
 
-        # Escolhe aleatoriamente indivíduo e execução.
+        # Seleciona indivíduo e execução aleatoriamente.
         key, robot_file, object_file = rng.choice(candidates)
 
         individual_id, run = key
@@ -389,74 +364,29 @@ def main():
                 object_file
             )
 
-            filename = (
-                f"generation_{generation}"
-                f"_individual_{individual_id}"
-                f"_run_{run}.png"
+            output_path = (
+                OUTPUT_DIR / f"generation_{generation}.png"
             )
-
-            output_path = output_root / filename
 
             save_snapshot(
                 robot_positions=robot_positions,
                 object_positions=object_positions,
                 output_path=output_path,
-                generation=generation,
-                individual_id=individual_id,
-                run=run,
             )
 
-            manifest.append({
-                "generation": generation,
-                "individual_id": individual_id,
-                "run": run,
-                "robot_file": robot_file.name,
-                "object_file": object_file.name,
-                "snapshot": filename,
-            })
+            generated += 1
 
-            print(
-                f"Geração {generation}: "
-                f"indivíduo {individual_id}, run {run}"
-            )
+            print(f"Geração {generation}: OK")
 
         except Exception as error:
 
             print(
-                f"Erro na geração {generation}: {error}"
+                f"Geração {generation}: erro - {error}"
             )
 
-    # Registra as escolhas aleatórias.
-    output_root.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    manifest_path = output_root / "selected_samples.csv"
-
-    with manifest_path.open("w", newline="") as file:
-
-        fieldnames = [
-            "generation",
-            "individual_id",
-            "run",
-            "robot_file",
-            "object_file",
-            "snapshot",
-        ]
-
-        writer = csv.DictWriter(
-            file,
-            fieldnames=fieldnames,
-        )
-
-        writer.writeheader()
-        writer.writerows(manifest)
-
     print("\n========== CONCLUÍDO ==========")
-    print(f"Imagens geradas: {len(manifest)}")
-    print(f"Pasta: {output_root}")
-    print(f"Manifesto: {manifest_path}")
+    print(f"Imagens geradas: {generated}")
+    print(f"Destino: {OUTPUT_DIR}")
 
 
 if __name__ == "__main__":
