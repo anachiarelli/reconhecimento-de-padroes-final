@@ -7,7 +7,20 @@ import glob
 SCENARIOS = ("grouping", "sorting_groups", "object_clustering")
 CLASS_SIZE = 10
 
+UNDEFINED_INSTANCES_PER_SCENARIO = CLASS_SIZE // len(SCENARIOS)
+REMAINDER_UNDEFINED_INSTANCES = CLASS_SIZE % len(SCENARIOS)
+
+undefined_instances_per_scenario = {
+    "grouping": UNDEFINED_INSTANCES_PER_SCENARIO,
+    "sorting_groups": UNDEFINED_INSTANCES_PER_SCENARIO,
+    "object_clustering": CLASS_SIZE - ((len(SCENARIOS) - 1) * UNDEFINED_INSTANCES_PER_SCENARIO)
+}
+
+
 scenario_data = {}
+classes = {}
+classes["undefined"] = []
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 for scenario in SCENARIOS:
@@ -26,33 +39,30 @@ for scenario in SCENARIOS:
     # sort the list of tuples for each scenario by fitness_value in descending order
     scenario_data[scenario].sort(key=lambda x: x[0], reverse=True)
 
-# Create the scenarios classes with CLASS_SIZE best individuals for each scenario
-classes = {
-    scenario: scenario_data[scenario][:CLASS_SIZE]
-    for scenario in SCENARIOS
-}
+    # Select the top CLASS_SIZE individuals for each scenario and store them in the classes dictionary
+    classes[scenario] = scenario_data[scenario][:CLASS_SIZE]
 
-# Create the unclassified class using the bottom individuals proportionally.
-undefined_class = []
+    # Select the bottom undefined_instances_per_scenario[scenario] individuals for each scenario and store them in the undefined class
+    undefined_class = scenario_data[scenario][-undefined_instances_per_scenario[scenario]:]
+    classes["undefined"].extend(undefined_class)
 
-base_size = CLASS_SIZE // len(SCENARIOS)
-remainder = CLASS_SIZE % len(SCENARIOS)
-
-for i, scenario in enumerate(SCENARIOS):
-    quantity = base_size + (1 if i < remainder else 0)
-
-    undefined_class.extend(scenario_data[scenario][-quantity:] if quantity else [])
-
-classes["undefined"] = undefined_class
-
-# Copy the selected individual CSV files to /instances/{scenario}
+# Copy the selected individual CSV files to /instances/{scenario} except for the undefined class,
+# which will be copied to /instances/{scenario}/undefined based on their original scenario.
+# Copy selected individuals to /instances/{scenario}
 for scenario, individuals in classes.items():
-    scenario_dir = os.path.join(ROOT_DIR, "instances", scenario)
-    os.makedirs(scenario_dir, exist_ok=True)
-
     for _, generation, individual_id, original_scenario in individuals:
+
         individual_id = f"{int(individual_id):03d}"
 
+        # Define destination directory
+        if scenario == "undefined":
+            destination_dir = os.path.join(ROOT_DIR, "instances", original_scenario, "undefined")
+        else:
+            destination_dir = os.path.join(ROOT_DIR, "instances", scenario)
+
+        os.makedirs(destination_dir, exist_ok=True)
+
+        # Define source subdirectories based on original scenario
         if original_scenario == "object_clustering":
             subdirectories = ["robots", "objects"]
         elif original_scenario == "sorting_groups":
@@ -71,9 +81,10 @@ for scenario, individuals in classes.items():
                 f"{individual_id}_*.csv"
             )
 
-            source_files = glob.glob(source_pattern)
+            source_files = sorted(glob.glob(source_pattern))
 
             if source_files:
-                shutil.copy2(source_files[0], scenario_dir)
+                shutil.copy2(source_files[0], destination_dir)
             else:
                 print(f"Not found: {source_pattern}")
+                

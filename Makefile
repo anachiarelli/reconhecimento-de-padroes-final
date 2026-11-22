@@ -10,3 +10,6 @@ run:
 
 select:
 	docker run --rm -w /usr/src/app -v .:/usr/src/app python:3.14 bash -c "source .venv/bin/activate && python lib/select_individuals.py"
+
+generate_images:
+	docker run --rm -w /usr/src/app -v .:/usr/src/app python:3.14 bash -c "source .venv/bin/activate && python lib/generate_images.py"
