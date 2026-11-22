@@ -84,7 +84,7 @@ for scenario, individuals in classes.items():
             source_files = sorted(glob.glob(source_pattern))
 
             if source_files:
-                shutil.copy2(source_files[0], destination_dir + f"/{generation}_{individual_id}.csv")
+                shutil.copy2(source_files[0], destination_dir + f"/{generation}_{individual_id}_{subdirectory}.csv")
             else:
                 print(f"Not found: {source_pattern}")
                 
