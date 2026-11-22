@@ -5,7 +5,7 @@ import glob
 # For each scenario in /output/{scenario}/, initialize a list to hold tuples of:
 # (fitness_value, generation, individual_id, scenario) for each individual in each generation.
 SCENARIOS = ("grouping", "sorting_groups", "object_clustering")
-CLASS_SIZE = 10
+CLASS_SIZE = 75
 
 UNDEFINED_SAMPLES_PER_SCENARIO = CLASS_SIZE // len(SCENARIOS)
 REMAINDER_UNDEFINED_SAMPLES = CLASS_SIZE % len(SCENARIOS)
