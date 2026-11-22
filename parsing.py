@@ -2,7 +2,7 @@ import os
 
 os.makedirs("parsed/grouping", exist_ok=True)
 os.makedirs("parsed/sorting_groups", exist_ok=True)
-os.makedirs("parsed/object_images", exist_ok=True)
+os.makedirs("parsed/object_clustering", exist_ok=True)
 os.makedirs("parsed/undefined", exist_ok=True)
 
 ### GROUPING ###
@@ -26,7 +26,7 @@ for file in os.listdir("samples/grouping/undefined"):
             last_line = f.readlines()[-1].split(",")
 
             # Create the file if it doesn't exist
-            with open(f"parsed/undefined/{file}", "w") as p:
+            with open(f"parsed/undefined/g_{file}", "w") as p:
                 for i in range(0, len(last_line) - 1, 3):
                     x = float(last_line[i])
                     y = float(last_line[i + 1])
@@ -63,7 +63,7 @@ for file in os.listdir("samples/sorting_groups/undefined"):
             last_line = f.readlines()[-1].split(",")
 
             # Create the file if it doesn't exist
-            with open(f"parsed/undefined/{file.replace('robots', '')}", "w") as p:
+            with open(f"parsed/undefined/s_{file.replace('robots', '')}", "w") as p:
                 for i in range(0, len(last_line) - 1, 6):
                     x = float(last_line[i])
                     y = float(last_line[i + 1])
@@ -89,7 +89,7 @@ for file in os.listdir("samples/object_clustering"):
                 last_line_objects = objects_file.readlines()[-1].split(",")
 
                 # Create the file if it doesn't exist
-                with open(f"parsed/object_images/{file.replace('robots', '')}", "w") as p:
+                with open(f"parsed/object_clustering/{file.replace('robots', '')}", "w") as p:
                     for i in range(0, len(last_line_robots) - 1, 3):
                         x = float(last_line_robots[i])
                         y = float(last_line_robots[i + 1])
@@ -108,7 +108,7 @@ for file in os.listdir("samples/object_clustering/undefined"):
                 last_line_objects = objects_file.readlines()[-1].split(",")
 
                 # Create the file if it doesn't exist
-                with open(f"parsed/undefined/{file.replace('robots', '')}", "w") as p:
+                with open(f"parsed/undefined/o_{file.replace('robots', '')}", "w") as p:
                     for i in range(0, len(last_line_robots) - 1, 3):
                         x = float(last_line_robots[i])
                         y = float(last_line_robots[i + 1])
