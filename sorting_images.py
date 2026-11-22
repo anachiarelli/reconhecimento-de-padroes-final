@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 WORLD_SIZE = 450.0
 ROBOT_RADIUS = 3.6
 
-# read files in instances/sorting_groups
-for file in os.listdir("instances/sorting_groups"):
+# read files in samples/sorting_groups
+for file in os.listdir("samples/sorting_groups"):
     if file.endswith(".csv"):
         # initialize plot
         plt.figure(figsize=(10, 10))
@@ -13,7 +13,7 @@ for file in os.listdir("instances/sorting_groups"):
         plt.ylim(0, WORLD_SIZE)
         plt.gca().set_aspect('equal', adjustable='box')
 
-        with open(f"instances/sorting_groups/{file}", "r") as f:
+        with open(f"samples/sorting_groups/{file}", "r") as f:
             # read last line
             last_line = f.readlines()[-1].split(",")
             for i in range(0, len(last_line) -1, 6):
@@ -28,12 +28,12 @@ for file in os.listdir("instances/sorting_groups"):
                 plt.gca().add_artist(circle)
 
 
-        # save plot to instances/sorting_groups/{generation}_{individual_id}.png
-        plt.savefig(f"instances/sorting_groups/{file.replace('.csv', '.png')}")
+        # save plot to samples/sorting_groups/{generation}_{individual_id}.png
+        plt.savefig(f"samples/sorting_groups/{file.replace('.csv', '.png')}")
         plt.clf()  # clear the plot for the next file
 
-# read files in instances/sorting_groups
-for file in os.listdir("instances/sorting_groups/undefined"):
+# read files in samples/sorting_groups
+for file in os.listdir("samples/sorting_groups/undefined"):
     if file.endswith(".csv"):
         # initialize plot
         plt.figure(figsize=(10, 10))
@@ -41,7 +41,7 @@ for file in os.listdir("instances/sorting_groups/undefined"):
         plt.ylim(0, WORLD_SIZE)
         plt.gca().set_aspect('equal', adjustable='box')
 
-        with open(f"instances/sorting_groups/undefined/{file}", "r") as f:
+        with open(f"samples/sorting_groups/undefined/{file}", "r") as f:
             # read last line
             last_line = f.readlines()[-1].split(",")
             for i in range(0, len(last_line) -1, 6):
@@ -57,6 +57,6 @@ for file in os.listdir("instances/sorting_groups/undefined"):
 
 
 
-        # save plot to instances/sorting_groups/undefined/{generation}_{individual_id}.png
-        plt.savefig(f"instances/sorting_groups/undefined/{file.replace('.csv', '.png')}")
+        # save plot to samples/sorting_groups/undefined/{generation}_{individual_id}.png
+        plt.savefig(f"samples/sorting_groups/undefined/{file.replace('.csv', '.png')}")
         plt.clf()  # clear the plot for the next file

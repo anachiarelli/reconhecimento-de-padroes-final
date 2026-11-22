@@ -5,8 +5,8 @@ WORLD_SIZE = 112.0
 ROBOT_RADIUS = 3.6
 OBJECT_RADIUS = 5.0
 
-# read files in instances/sorting_groups
-for file in os.listdir("instances/object_clustering"):
+# read files in samples/sorting_groups
+for file in os.listdir("samples/object_clustering"):
     if file.endswith("robots.csv"):
         # initialize plot
         plt.figure(figsize=(10, 10))
@@ -14,8 +14,8 @@ for file in os.listdir("instances/object_clustering"):
         plt.ylim(0, WORLD_SIZE)
         plt.gca().set_aspect('equal', adjustable='box')
 
-        with open(f"instances/object_clustering/{file}", "r") as robots_file:
-            with open(f"instances/object_clustering/{file.replace('robots', 'objects')}", "r") as objects_file:
+        with open(f"samples/object_clustering/{file}", "r") as robots_file:
+            with open(f"samples/object_clustering/{file.replace('robots', 'objects')}", "r") as objects_file:
                 # read last line
                 last_line = robots_file.readlines()[-1].split(",")
                 for i in range(0, len(last_line) -1, 3):
@@ -35,13 +35,13 @@ for file in os.listdir("instances/object_clustering"):
                     plt.gca().add_artist(circle)
 
 
-        # save plot to instances/object_clustering/{generation}_{individual_id}.png
-        plt.savefig(f"instances/object_clustering/{file.replace('robots.csv', '.png')}")
+        # save plot to samples/object_clustering/{generation}_{individual_id}.png
+        plt.savefig(f"samples/object_clustering/{file.replace('robots.csv', '.png')}")
         plt.clf()  # clear the plot for the next file
 
 
-# read files in instances/sorting_groups
-for file in os.listdir("instances/object_clustering/undefined"):
+# read files in samples/sorting_groups
+for file in os.listdir("samples/object_clustering/undefined"):
     if file.endswith("robots.csv"):
         # initialize plot
         plt.figure(figsize=(10, 10))
@@ -49,8 +49,8 @@ for file in os.listdir("instances/object_clustering/undefined"):
         plt.ylim(0, WORLD_SIZE)
         plt.gca().set_aspect('equal', adjustable='box')
 
-        with open(f"instances/object_clustering/undefined/{file}", "r") as robots_file:
-            with open(f"instances/object_clustering/undefined/{file.replace('robots', 'objects')}", "r") as objects_file:
+        with open(f"samples/object_clustering/undefined/{file}", "r") as robots_file:
+            with open(f"samples/object_clustering/undefined/{file.replace('robots', 'objects')}", "r") as objects_file:
                 # read last line
                 last_line = robots_file.readlines()[-1].split(",")
                 for i in range(0, len(last_line) -1, 3):
@@ -71,6 +71,6 @@ for file in os.listdir("instances/object_clustering/undefined"):
 
 
 
-        # save plot to instances/object_clustering/undefined/{generation}_{individual_id}.png
-        plt.savefig(f"instances/object_clustering/undefined/{file.replace('robots.csv', '.png')}")
+        # save plot to samples/object_clustering/undefined/{generation}_{individual_id}.png
+        plt.savefig(f"samples/object_clustering/undefined/{file.replace('robots.csv', '.png')}")
         plt.clf()  # clear the plot for the next file

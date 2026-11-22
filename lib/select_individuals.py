@@ -7,13 +7,13 @@ import glob
 SCENARIOS = ("grouping", "sorting_groups", "object_clustering")
 CLASS_SIZE = 10
 
-UNDEFINED_INSTANCES_PER_SCENARIO = CLASS_SIZE // len(SCENARIOS)
-REMAINDER_UNDEFINED_INSTANCES = CLASS_SIZE % len(SCENARIOS)
+UNDEFINED_SAMPLES_PER_SCENARIO = CLASS_SIZE // len(SCENARIOS)
+REMAINDER_UNDEFINED_SAMPLES = CLASS_SIZE % len(SCENARIOS)
 
-undefined_instances_per_scenario = {
-    "grouping": UNDEFINED_INSTANCES_PER_SCENARIO,
-    "sorting_groups": UNDEFINED_INSTANCES_PER_SCENARIO,
-    "object_clustering": CLASS_SIZE - ((len(SCENARIOS) - 1) * UNDEFINED_INSTANCES_PER_SCENARIO)
+undefined_samples_per_scenario = {
+    "grouping": UNDEFINED_SAMPLES_PER_SCENARIO,
+    "sorting_groups": UNDEFINED_SAMPLES_PER_SCENARIO,
+    "object_clustering": CLASS_SIZE - ((len(SCENARIOS) - 1) * UNDEFINED_SAMPLES_PER_SCENARIO)
 }
 
 
@@ -42,13 +42,13 @@ for scenario in SCENARIOS:
     # Select the top CLASS_SIZE individuals for each scenario and store them in the classes dictionary
     classes[scenario] = scenario_data[scenario][:CLASS_SIZE]
 
-    # Select the bottom undefined_instances_per_scenario[scenario] individuals for each scenario and store them in the undefined class
-    undefined_class = scenario_data[scenario][-undefined_instances_per_scenario[scenario]:]
+    # Select the bottom undefined_samples_per_scenario[scenario] individuals for each scenario and store them in the undefined class
+    undefined_class = scenario_data[scenario][-undefined_samples_per_scenario[scenario]:]
     classes["undefined"].extend(undefined_class)
 
-# Copy the selected individual CSV files to /instances/{scenario} except for the undefined class,
-# which will be copied to /instances/{scenario}/undefined based on their original scenario.
-# Copy selected individuals to /instances/{scenario}
+# Copy the selected individual CSV files to /samples/{scenario} except for the undefined class,
+# which will be copied to /samples/{scenario}/undefined based on their original scenario.
+# Copy selected individuals to /samples/{scenario}
 for scenario, individuals in classes.items():
     for _, generation, individual_id, original_scenario in individuals:
 
@@ -56,9 +56,9 @@ for scenario, individuals in classes.items():
 
         # Define destination directory
         if scenario == "undefined":
-            destination_dir = os.path.join(ROOT_DIR, "instances", original_scenario, "undefined")
+            destination_dir = os.path.join(ROOT_DIR, "samples", original_scenario, "undefined")
         else:
-            destination_dir = os.path.join(ROOT_DIR, "instances", scenario)
+            destination_dir = os.path.join(ROOT_DIR, "samples", scenario)
 
         os.makedirs(destination_dir, exist_ok=True)
 
