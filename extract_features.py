@@ -147,7 +147,7 @@ with open("dataset.csv", "w", newline="") as dataset_file:
     writer = csv.writer(dataset_file)
 
     # Write header
-    writer.writerow(["num_colors", "density", "number_of_clusters", "class_label"])
+    writer.writerow(["num_colors", "density", "number_of_clusters", "class_label", "number_of_outliers", "sum_of_clusters_by_color", "sum_of_outliers_by_color", "cluster_mean_density", "cluster_density_variance", "mean_cluster_density_by_color", "cluster_density_variance_by_color", "class_label"])
 
     # Extract features for each individual
     for class_name in CLASSES:
